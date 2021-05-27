@@ -9,16 +9,14 @@ const init: ts.server.PluginModuleFactory = (modules) => {
 		create(info) {
 
 			// fix: https://github.com/johnsoncodehk/volar/issues/205
+			// @ts-ignore
+			info.project.__volar_originalGetScriptKind = info.project.getScriptKind;
 			info.project.getScriptKind = fileName => {
-				switch (path.extname(fileName)) {
-					case '.vue': return ts.ScriptKind.JSON; // can't use External, Unknown
-					case '.js': return ts.ScriptKind.JS;
-					case '.jsx': return ts.ScriptKind.JSX;
-					case '.ts': return ts.ScriptKind.TS;
-					case '.tsx': return ts.ScriptKind.TSX;
-					case '.json': return ts.ScriptKind.JSON;
-					default: return ts.ScriptKind.Unknown;
+				if (fileName.endsWith('.vue')) {
+					return ts.ScriptKind.JSON; // can't use External, Unknown
 				}
+				// @ts-ignore
+				return info.project.__volar_originalGetScriptKind(fileName);
 			};
 
 			const proxyHost = createProxyHost(ts, info);
